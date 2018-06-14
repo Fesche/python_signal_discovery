@@ -6,6 +6,7 @@ spec = importlib.util.spec_from_file_location("performance", "../scripts/perform
 performance = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(performance)
 
+
 def find_signals(signal, threshold=0.5, return_values=False):
     """
     Returns timestamps of when the signal is active.
