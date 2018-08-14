@@ -29,7 +29,7 @@ def divide_by_length(signals,significance=100):
         length_n_signals = [s for s in signals if len(s) == i]
         if len(length_n_signals) > significance:
             signals_by_length.append(length_n_signals)
-
+            print("No. length {} signals: {}".format(i,len(length_n_signals)))
     return signals_by_length
 
 def calculate_k(signals_by_length, threshold=0.02, max_clusters=10000):
@@ -65,7 +65,7 @@ def create_templates(signal_file, template_column='car1', significance=100, silh
     Creates typical templates from a list of signals by creating clusterings for
     each signal length. Returns a list of length equal to the number of signal
     lengths, each consisting of k templates, where k is automatically calculated
-    using the silhouette score (see choose_k()).
+    using the silhouette score (see calcuate_k()).
     """
     all_signals = data_preparation.read_dataport_file(signal_file, template_column)
     signals = []
