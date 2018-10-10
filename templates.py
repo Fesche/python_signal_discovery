@@ -60,7 +60,30 @@ def calculate_k(signals_by_length, threshold=0.02, max_clusters=10000):
 
     return k
 
-def create_templates(signal_file, template_column='car1', significance=100, silhouette_threshold=0.02, max_templates=10000):
+def calculate_single_k(length_n_signals, threshold=0.02, max_clusters=10000):
+    """
+    Calculates the optimal value for k given a set of signals of the same length by clustering for
+    each k from 2 and calculating the silhouette score. The clustering where a
+    significant loss in silhouette score is still acheived by increasing k is
+    chosen.
+    """
+
+    silhouette_scores = [2]
+
+    for k in range(2,max_clusters):
+
+        #Generate clusterings
+        clustering = KMeans(n_clusters=k)
+        clustering.fit(length_n_signals)
+        silhouette_scores.append(silhouette_score(length_n_signals, clustering.labels_))
+
+        #Compare silhouette score with previous silhouette score
+        if silhouette_scores[-2] - silhouette_scores[-1] < threshold:
+            return k-1
+
+    return k
+
+def create_templates(signal_file, template_column='car1', significance=100, silhouette_threshold=0.02, max_templates=10000, return_library=False, separate_ks=False):
     """
     Creates typical templates from a list of signals by creating clusterings for
     each signal length. Returns a list of length equal to the number of signal
@@ -73,23 +96,44 @@ def create_templates(signal_file, template_column='car1', significance=100, silh
         signals.extend(data_preparation.find_signals(all_signals[house], return_values=True))
 
     signals_by_length = divide_by_length(signals, significance=significance)
+
     n_lengths = len(signals_by_length)
-    k = calculate_k(signals_by_length, threshold=silhouette_threshold, max_clusters=max_templates)
+    if not separate_ks:
+        k = calculate_k(signals_by_length, threshold=silhouette_threshold, max_clusters=max_templates)
 
-    templates = []
+        templates = []
 
-    for i in range(n_lengths):
-        length_n_templates = []
+        for i in range(n_lengths):
+            length_n_templates = []
 
-        clustering = KMeans(n_clusters=k)
-        clustering.fit(signals_by_length[i])
+            clustering = KMeans(n_clusters=k)
+            clustering.fit(signals_by_length[i])
 
-        for cluster in range(k):
-            cluster_indexes = np.where(clustering.labels_ == cluster)[0]
-            cluster_signals = np.array([signals_by_length[i][c] for c in cluster_indexes])
-            cluster_mean = np.mean(cluster_signals, axis=0)
-            length_n_templates.append(cluster_mean)
+            for cluster in range(k):
+                cluster_indexes = np.where(clustering.labels_ == cluster)[0]
+                cluster_signals = np.array([signals_by_length[i][c] for c in cluster_indexes])
+                cluster_mean = np.mean(cluster_signals, axis=0)
+                length_n_templates.append(cluster_mean)
 
-        templates.append(length_n_templates)
+            templates.append(length_n_templates)
+    else:
+        templates = []
+
+        for i in range(n_lengths):
+            length_n_templates = []
+            k = calculate_single_k(signals_by_length[i], threshold=silhouette_threshold, max_clusters=max_templates)
+            clustering = KMeans(n_clusters=k)
+            clustering.fit(signals_by_length[i])
+
+            for cluster in range(k):
+                cluster_indexes = np.where(clustering.labels_ == cluster)[0]
+                cluster_signals = np.array([signals_by_length[i][c] for c in cluster_indexes])
+                cluster_mean = np.mean(cluster_signals, axis=0)
+                length_n_templates.append(cluster_mean)
+
+            templates.append(length_n_templates)
+
+    if return_library:
+        return templates, signals_by_length
 
     return templates

@@ -136,27 +136,30 @@ def threshold_testing(pred, true, thresholds, verbose=False):
 
     return {"f1": f1s, "recall": rs, "precision": ps, "n_pred": n_pred}
 
-def plot_scores(score_dict, thresholds, out_file=None, model_name=""):
+def plot_scores(score_dict, thresholds, out_file=None, model_name="", plot_n=False, grid=True, rotation=0):
     fig, ax1 = plt.subplots()
+    ax1.grid(axis='both')
+    plt.rc('axes', axisbelow=True)
 
     ax1.plot(thresholds, score_dict["f1"], label='F1 (max {0:.2f})'.format(score_dict["f1"].max()))
     ax1.plot(thresholds, score_dict["recall"], label='Recall')
     ax1.plot(thresholds, score_dict["precision"], label='Precision')
     ax1.set_ylabel('Scores')
     ax1.set_ylim(0,1)
+    ax1.set_xlim(min(thresholds),max(thresholds))
 
-    ax2 = ax1.twinx()
+    if plot_n:
+        ax2 = ax1.twinx()
 
-    ax2.bar(thresholds, score_dict["n_pred"], 0.08, alpha=0.2, color='C0')
-    ax2.set_ylabel('Number of signals discovered')
+        ax2.bar(thresholds, score_dict["n_pred"], 0.1*max(thresholds), alpha=0.2, color='C0')
+        ax2.set_ylabel('Number of signals discovered')
 
     xticks = ["{0:.2f}".format(t) for t in thresholds]
-    plt.xticks(thresholds, xticks)
+    plt.xticks(thresholds, xticks, rotation=rotation)
     ax1.set_xlabel("Threshold")
-
     ax1.set_title("{} scores".format(model_name))
 
-    fig.legend(bbox_to_anchor=(0.85,0.90))
+    fig.legend(bbox_to_anchor=(0.93,0.90))
     fig.tight_layout()
     if out_file is not None:
         plt.savefig(out_file)
@@ -193,7 +196,7 @@ def roc_curve(pred, true, thresholds, plot=False):
             n_negatives += (len(true[house]) - len(gold))
 
         print(tps, fps)
-    
+
         tp_rate = tps / n_positives if n_positives > 0 else 1
         fp_rate = fps / n_negatives if n_negatives > 0 else 1
 

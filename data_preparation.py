@@ -113,10 +113,11 @@ def continuous_output_training_set(aggregate, submeter, threshold=0.5, window_si
     labels = submeter
     labels.iloc[np.where(labels < threshold)] = 0
 
-    X = np.zeros((N-window_size,window_size))
-    y = np.zeros((N-window_size,window_size))
+    X = np.zeros((int((N-window_size)/step_size),window_size))
+    y = np.zeros((int((N-window_size)/step_size),window_size))
 
-    for i in range(0,N-window_size):
+    for i in range(0,int((N-window_size)/step_size)):
+        j = i*step_size
         X[i] = aggregate[i:i+window_size]
         y[i] = labels[i:i+window_size].values.flatten()
 
@@ -308,7 +309,7 @@ def read_eidsiva_file(filepath, column, upsample=None, downsample=None, househol
     return data_n
 
 
-def make_training_set(aggregate_data_file, submeter_data_file, type='discrete', n_synth=0, window_size=24, submeter_threshold=0.5, aggregate_col='use', submeter_col='car1', verbose=False, window_step=None, output_file_X='training_set_X.csv', output_file_y='training_set_y.csv', keep_na=False):
+def make_training_set(aggregate_data_file, submeter_data_file, type='discrete', n_synth=0, window_size=24, submeter_threshold=0.5, aggregate_col='use', submeter_col='car1', verbose=False, window_step=None, output_file_X='training_set_X.csv', output_file_y='training_set_y.csv', synth_output_file_X=None, synth_output_file_y=None, keep_na=False):
     """
     n_synth: number of synthetic data points to make
     window_size: size of input/output windows
@@ -326,6 +327,10 @@ def make_training_set(aggregate_data_file, submeter_data_file, type='discrete', 
     submeter_data = read_dataport_file(submeter_data_file, submeter_col)
     open(output_file_X, 'w').close()
     open(output_file_y, 'w').close()
+    assert (synth_output_file_X is None and synth_output_file_y is None) or (synth_output_file_X is not None and synth_output_file_y is not None)
+    if synth_output_file_X is not None:
+        open(output_file_X, 'w').close()
+        open(output_file_X, 'w').close()
 
     if keep_na:
         #set all NAN values in each dataset as well as their corresponding values in the other dataset to zero
@@ -360,18 +365,26 @@ def make_training_set(aggregate_data_file, submeter_data_file, type='discrete', 
                 X = pd.DataFrame(synth_training_set['X'], columns=np.arange(window_size))
                 y = pd.DataFrame(synth_training_set['y'], columns=np.arange(window_size))
 
-                with open(output_file_X, 'a') as f:
-                    X.to_csv(f, index=False, header=False)
 
-                with open(output_file_y, 'a') as f:
-                    y.to_csv(f, index=False, header=False)
+
+                if synth_output_file_X is None:
+                    with open(output_file_X, 'a') as f:
+                        X.to_csv(f, index=False, header=False)
+                    with open(output_file_y, 'a') as f:
+                        y.to_csv(f, index=False, header=False)
+                else:
+                    with open(synth_output_file_X, 'a') as f:
+                        X.to_csv(f, index=False, header=False)
+                    with open(synth_output_file_y, 'a') as f:
+                        y.to_csv(f, index=False, header=False)
+
 
                 if verbose:
                     print("House {} synthetic done".format(house))
 
     elif type == 'continuous':
         for house in aggregate_data.columns:
-            real_training_set = continuous_output_training_set(aggregate_data[house], submeter_data[house], window_size=24, threshold=submeter_threshold, step_size=window_step)
+            real_training_set = continuous_output_training_set(aggregate_data[house], submeter_data[house], window_size=window_size, threshold=submeter_threshold, step_size=window_step)
 
             X = pd.DataFrame(real_training_set['X'], columns=np.arange(window_size))
             y = pd.DataFrame(real_training_set['y'], columns=np.arange(window_size))
@@ -392,11 +405,18 @@ def make_training_set(aggregate_data_file, submeter_data_file, type='discrete', 
                 X = pd.DataFrame(synth_training_set['X'], columns=np.arange(window_size))
                 y = pd.DataFrame(synth_training_set['y'], columns=np.arange(window_size))
 
-                with open(output_file_X, 'a') as f:
-                    X.to_csv(f, index=False, header=False)
+                assert (synth_output_file_X is None and synth_output_file_y is None) or (synth_output_file_X is not None and synth_output_file_y is not None)
 
-                with open(output_file_y, 'a') as f:
-                    y.to_csv(f, index=False, header=False)
+                if synth_output_file_X is None:
+                    with open(output_file_X, 'a') as f:
+                        X.to_csv(f, index=False, header=False)
+                    with open(output_file_y, 'a') as f:
+                        y.to_csv(f, index=False, header=False)
+                else:
+                    with open(synth_output_file_X, 'a') as f:
+                        X.to_csv(f, index=False, header=False)
+                    with open(synth_output_file_y, 'a') as f:
+                        y.to_csv(f, index=False, header=False)
 
                 if verbose:
                     print("House {} synthetic done".format(house))
