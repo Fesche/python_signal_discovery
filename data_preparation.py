@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import importlib.util
 
-spec = importlib.util.spec_from_file_location("performance", "../scripts/performance.py")
+spec = importlib.util.spec_from_file_location("performance", "C:/Users/bfesc/Documents/Master_thesis/scripts/performance.py")
 performance = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(performance)
 
