@@ -13,7 +13,7 @@ spec.loader.exec_module(performance)
 Assumes timestamped signal
 
 """
-
+### Filter model ###
 def correlate(filter, signal, normalize=True):
     xcorr = scipsign.correlate(signal.values, filter, mode='same')
     if normalize:

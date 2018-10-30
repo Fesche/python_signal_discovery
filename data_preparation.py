@@ -71,8 +71,6 @@ def discrete_output_training_set(aggregate, submeter, threshold=0.5, window_size
     The responses are the same size as the inputs, with 0s where there is no
     active signal, and 1s where there is an active signal.
 
-    NOTE:
-    Should the data be cleaned? e.g. by removing signals of length 1?
     """
 
     N = len(aggregate)

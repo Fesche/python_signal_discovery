@@ -4,10 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, silhouette_samples
 import importlib.util
 
-spec = importlib.util.spec_from_file_location("performance", "../scripts/performance.py")
-performance = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(performance)
-
+#### import helper functions ###
 spec2 = importlib.util.spec_from_file_location("pattern_matching", "../scripts/pattern_matching.py")
 pattern_matching = importlib.util.module_from_spec(spec2)
 spec2.loader.exec_module(pattern_matching)
@@ -15,13 +12,16 @@ spec2.loader.exec_module(pattern_matching)
 spec3 = importlib.util.spec_from_file_location("data_preparation", "../scripts/data_preparation.py")
 data_preparation = importlib.util.module_from_spec(spec3)
 spec3.loader.exec_module(data_preparation)
+################################
 
 
+### Template creation ###
 def divide_by_length(signals,significance=100):
 
     """
-    Returns a (sorted) list of lists, each sublist containing signals of a
-    certain length, given that the number of such signals exceed significance.
+    Returns a (sorted) list of lists, each sublist containing
+    signals of a certain length, given that the number of
+    such signals exceed significance.
     """
     signals_by_length = []
 
@@ -34,9 +34,10 @@ def divide_by_length(signals,significance=100):
 
 def calculate_k(signals_by_length, threshold=0.02, max_clusters=10000):
     """
-    Calculates the optimal value for k given a set of signals by clustering for
-    each k from 2 and calculating the silhouette score. The clustering where a
-    significant loss in silhouette score is still acheived by increasing k is
+    Calculates the optimal value for k given a set of signals
+    by clustering for each k from 2 and calculating the
+    silhouette score. The clustering where a significant loss
+    in silhouette score is still acheived by increasing k is
     chosen.
     """
 
@@ -62,10 +63,11 @@ def calculate_k(signals_by_length, threshold=0.02, max_clusters=10000):
 
 def calculate_single_k(length_n_signals, threshold=0.02, max_clusters=10000):
     """
-    Calculates the optimal value for k given a set of signals of the same length by clustering for
-    each k from 2 and calculating the silhouette score. The clustering where a
-    significant loss in silhouette score is still acheived by increasing k is
-    chosen.
+    Calculates the optimal value for k given a set of
+    signals of the same length by clustering for each
+    k from 2 and calculating the silhouette score. The
+    clustering where a significant loss in silhouette
+    score is still acheived by increasing k is chosen.
     """
 
     silhouette_scores = [2]
@@ -85,10 +87,11 @@ def calculate_single_k(length_n_signals, threshold=0.02, max_clusters=10000):
 
 def create_templates(signal_file, template_column='car1', significance=100, silhouette_threshold=0.02, max_templates=10000, return_library=False, separate_ks=False):
     """
-    Creates typical templates from a list of signals by creating clusterings for
-    each signal length. Returns a list of length equal to the number of signal
-    lengths, each consisting of k templates, where k is automatically calculated
-    using the silhouette score (see calcuate_k()).
+    Creates typical templates from a list of signals by
+    creating clusterings for each signal length. Returns
+    a list of length equal to the number of signal lengths,
+    each consisting of k templates, where k is automatically
+    calculated using the silhouette score (see calcuate_k()).
     """
     all_signals = data_preparation.read_dataport_file(signal_file, template_column)
     signals = []
@@ -137,3 +140,5 @@ def create_templates(signal_file, template_column='car1', significance=100, silh
         return templates, signals_by_length
 
     return templates
+
+### End template creation ###
